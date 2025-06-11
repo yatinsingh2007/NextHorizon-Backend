@@ -48,3 +48,5 @@ authRouter.get('/logout' , (req , res) => {
         expires : new Date(Date.now())
     }).status(200).send({ message: 'Logout Successful' });
 })
+
+module.exports = authRouter;

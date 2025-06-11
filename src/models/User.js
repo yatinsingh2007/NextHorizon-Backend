@@ -6,33 +6,25 @@ const userSchema = mongoose.Schema({
         required: true,
         trim: true,
         minlength: 3,
-        maxlength: 50
+        maxlength: 50,
+        index : 1
     },
     email : {
         type : String,
         required : true,
         unique: true,
         trim: true,
-        index : 1,
-        validate : {
-            function(value){
-                if (!validator.isEmail(value)) {
-                    throw new Error('Invalid Email');
-                }
-                return
-            }
+        validate: {
+            validator: (value) => validator.isEmail(value),
+            message: 'Invalid Email'
         }
     },
     password : {
         type : String,
         required : true,
-        validat : {
-            function(value){
-                if (!validator.isStrongPassword(value)){
-                    throw new Error('Password must be Strong')
-                }
-                return
-            }
+        validate: {
+            validator: (value) => validator.isStrongPassword(value),
+            message: 'Password must be Strong'
         }
     },
     bachelorsDegree : {

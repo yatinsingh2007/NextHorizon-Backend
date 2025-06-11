@@ -1,0 +1,66 @@
+const mongoose = require('mongoose');
+const validator = require('validator');
+const postSchema = mongoose.Schema({
+    type : {
+        type : String,
+        required: true,
+    },
+    title : {
+        type : String,
+        required: true,
+        trim: true,
+        minlength: 3,
+        maxlength: 100
+    },
+    description : {
+        type : String,
+        required: true,
+        trim: true,
+        minlength: 10,
+        maxlength: 500
+    },
+    company : {
+        type : String,
+        required: true,
+        trim: true,
+        minlength: 3,
+        maxlength: 100
+    },
+    applyUrl : {
+        type : String,
+        required: true,
+        trim: true,
+        validate : {
+            validator : (value) => {
+                if (validator.isURL(value)) {
+                    return true;
+                }
+            },
+            message: 'Invalid URL'
+        }
+    },
+    tags : {
+        type : [String]
+    },
+    companyLogo : {
+        type : String,
+        default: 'https://res.cloudinary.com/dz1qj3x8h/image/upload/v1735681234/nextHorion/defaultCompanyLogo.png'
+    },
+    postImage : {
+        type : String,
+        default: 'https://res.cloudinary.com/dz1qj3x8h/image/upload/v1735681234/nextHorion/defaultPostImage.png'
+    },
+    likeCount: {
+        type: Number,
+        default: 0
+    },
+    dislikeCount: {
+        type: Number,
+        default: 0
+    },
+} , {
+    timestamps: true
+});
+
+const Post = mongoose.model('Post', postSchema);
+module.exports = Post;
