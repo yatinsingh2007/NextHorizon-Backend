@@ -31,17 +31,30 @@ authRouter.post('/login' , async (req , res) => {
     }
 })
 
-authRouter.post('/register' , async (req , res) => {
-    try {
-       const { password } = req.body;
-       const hasedpassword = await passwordHasher.hash(password, 10);
-       const user = new User({ ...req.body, [password]: hasedpassword });
-       await user.save();
-       res.status(201).send({ message: 'User Registered Successfully', user });
-    }catch(err) {
-        res.status(404).send('Something went wrong');
+authRouter.post('/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'All fields are required' });
     }
-})
+
+    const hashedPassword = await passwordHasher.hash(password, 10);
+
+    const ourUser = new User({
+      name,
+      email,
+      password: hashedPassword
+    });
+
+    await ourUser.save();
+
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (err) {
+    console.log(err.message);
+    res.status(400).json({ message: 'Bad Request' });
+  }
+});
 
 authRouter.get('/logout' , (req , res) => {
     res.cookie("token" , null , {

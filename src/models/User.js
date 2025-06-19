@@ -40,8 +40,7 @@ const userSchema = mongoose.Schema({
         maxlength: 50
     },
     mobileNo:{
-        type: String,
-        unique: true,
+        type : String,
         trim: true,
         minlength: 10,
         maxlength: 15

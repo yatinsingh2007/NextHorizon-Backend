@@ -50,11 +50,11 @@ const postSchema = mongoose.Schema({
         type : String,
         default: 'https://res.cloudinary.com/dz1qj3x8h/image/upload/v1735681234/nextHorion/defaultPostImage.png'
     },
-    likeCount: {
+    likes: {
         type: Number,
         default: 0
     },
-    dislikeCount: {
+    dislikes: {
         type: Number,
         default: 0
     },
