@@ -58,6 +58,16 @@ const postSchema = mongoose.Schema({
         type: Number,
         default: 0
     },
+    likedBy : [{
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'User',
+        default : []
+    }],
+    dislikedBy : [{
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'User',
+        default : []
+    }]
 } , {
     timestamps: true
 });

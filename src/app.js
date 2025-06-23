@@ -9,7 +9,7 @@ const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
-const userAuth = require('./middleware/userauthCheck')
+const userAuthCheck = require('./middleware/userauthCheck');
 
 app.use(express.json());
 app.use(cookieParser())
@@ -21,7 +21,7 @@ app.use(cors({
 
 app.use('/auth', authRouter);
 
-app.get ('/feed', userAuth , async (req , res) => {
+app.get ('/feed', userAuthCheck , async (req , res) => {
     try{
         const users = await Post.find({})
         if (users.length === 0) {
@@ -34,7 +34,7 @@ app.get ('/feed', userAuth , async (req , res) => {
     }
 })
 
-app.patch('/update' , userAuth , async(req , res) => {
+app.patch('/update' , userAuthCheck , async(req , res) => {
     try{
         const user = req.user
         let body = req.body
@@ -61,6 +61,74 @@ app.get('' , async (req , res) => {
         res.status(400).send('Bad Request')
     }
 })
+
+app.patch('/feed/like', userAuthCheck, async (req, res) => {
+  try {
+    const our_user = req.user;
+    const { _id  , isLikeClicked } = req.body;
+
+    if (!_id) {
+      return res.status(400).send('Post ID is required');
+    }
+    if (isLikeClicked === true){
+        const updatedPost = await Post.findByIdAndUpdate(
+        _id,
+        {
+            $inc: { likes: 1 },
+            $addToSet: { likedBy: our_user._id },
+            $pull : {dislikedBy : our_user._id}
+        },
+        { new: true }
+        );
+        return res.status(200).send(updatedPost);
+    }else{
+         const updatedPost = await Post.findByIdAndUpdate(
+        _id,
+        {
+            $inc: { likes: -1 },
+            $pull: { likedBy: our_user._id }
+        },
+        { new: true }
+        );
+        return res.status(200).send(updatedPost);
+    }
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send('Internal Server Error');
+  }
+});
+
+app.patch('/feed/dislike' , userAuthCheck ,  async (req , res) => {
+    try{
+        const our_user = req.user
+        const {_id , isLikeClicked } = req.body
+        if (!_id){
+            return res.status(400).send('Post id must be provided')
+        }
+        if (isLikeClicked === false){
+            const updatedUser = await Post.findByIdAndUpdate(
+            _id , 
+            {
+                $inc : {likes : -1},
+                $addToSet : {dislikedBy : our_user._id},
+                $pull : {likedBy : our_user._id}
+        } , {new : true})
+        return res.status(200).send(updatedUser)
+        }else{
+            const updatedUser = await Post.findByIdAndUpdate(
+            _id , 
+            {
+                $inc : {likes : 1},
+                $pull : {dislikedBy : our_user._id}
+        } , {new : true})
+        return res.status(200).send(updatedUser)
+        }
+    }catch(err){
+        return res.status(500).send('Internal Server Error')
+    }
+})
+
 connectDB()
     .then(() => {
         app.listen(7777 , () => {
