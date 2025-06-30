@@ -64,70 +64,85 @@ app.get('' , async (req , res) => {
 
 app.patch('/feed/like', userAuthCheck, async (req, res) => {
   try {
-    const our_user = req.user;
-    const { _id  , isLikeClicked } = req.body;
+        const our_user = req.user;
+        const { _id  , isLikeClicked } = req.body;
 
-    if (!_id) {
-      return res.status(400).send('Post ID is required');
-    }
-    if (isLikeClicked === true){
-        const updatedPost = await Post.findByIdAndUpdate(
-        _id,
-        {
-            $inc: { likes: 1 },
-            $addToSet: { likedBy: our_user._id },
-            $pull : {dislikedBy : our_user._id}
-        },
-        { new: true }
-        );
-        return res.status(200).send(updatedPost);
-    }else{
-         const updatedPost = await Post.findByIdAndUpdate(
-        _id,
-        {
-            $inc: { likes: -1 },
-            $pull: { likedBy: our_user._id }
-        },
-        { new: true }
-        );
-        return res.status(200).send(updatedPost);
-    }
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).send('Internal Server Error');
+        if (!_id) {
+        return res.status(400).send('Post ID is required');
+        }
+        const ourPost = await Post.findById(_id)
+        if (isLikeClicked === true){
+        if (!ourPost.likedBy.includes(our_user[0]._id)){
+                ourPost.likedBy.push(our_user[0]._id)
+                ourPost.likes += 1
+                if (ourPost.dislikedBy.includes(our_user[0]._id)){
+                    ourPost.dislikedBy = ourPost.dislikedBy.filter((id) => id != our_user[0]._id)
+                    ourPost.dislikes -= 1
+                }
+            }else return
+        }else{
+            if (ourPost.likedBy.includes(our_user[0]._id)){
+                ourPost.likedBy = ourPost.likedBy.filter((id) => id != our_user[0]._id)
+                ourPost.likes -= 1
+            }
+        }
+        const updatedPost = await Post.findByIdAndUpdate(_id , {
+            likedBy : ourPost.likedBy,
+            likes : ourPost.likes,
+            dislikedBy : ourPost.dislikedBy,
+            dislikes : ourPost.dislikes
+        })
+        return res.status(200).json({
+            'updatedPost' : updatedPost
+        })
+ } catch (err) {
+        console.error(err);
+        return res.status(500).send('Internal Server Error');
   }
 });
 
-app.patch('/feed/dislike' , userAuthCheck ,  async (req , res) => {
-    try{
-        const our_user = req.user
-        const {_id , isLikeClicked } = req.body
-        if (!_id){
-            return res.status(400).send('Post id must be provided')
+app.patch('/feed/dislike', userAuthCheck, async (req, res) => {
+  try {
+        const ourUser = req.user;
+        const { _id, isDisLikeClicked } = req.body;
+
+        if (!_id) {
+            return res.status(400).send('Post id must be provided');
         }
-        if (isLikeClicked === false){
-            const updatedUser = await Post.findByIdAndUpdate(
-            _id , 
-            {
-                $inc : {likes : -1},
-                $addToSet : {dislikedBy : our_user._id},
-                $pull : {likedBy : our_user._id}
-        } , {new : true})
-        return res.status(200).send(updatedUser)
-        }else{
-            const updatedUser = await Post.findByIdAndUpdate(
-            _id , 
-            {
-                $inc : {likes : 1},
-                $pull : {dislikedBy : our_user._id}
-        } , {new : true})
-        return res.status(200).send(updatedUser)
+
+        const ourPost = await Post.findById(_id);
+        if (!ourPost) {
+            return res.status(404).send('Post not found');
         }
-    }catch(err){
-        return res.status(500).send('Internal Server Error')
-    }
-})
+        if (isDisLikeClicked === true) {
+            if (!ourPost.dislikedBy.includes(ourUser[0]._id)) {
+                ourPost.dislikes += 1;
+                ourPost.dislikedBy.push(ourUser[0]._id);
+                if (ourPost.likedBy.includes(ourUser[0]._id)){
+                    ourPost.likedBy = ourPost.likedBy.filter((id) => id != ourUser[0]._id)
+                    ourPost.likes -= 1
+                }else return
+            }
+            }else{
+                if (ourPost.dislikedBy.includes(ourUser[0]._id)){
+                    ourPost.dislikedBy = ourPost.dislikedBy.filter((id) => id != ourUser[0]._id)
+                    ourPost.dislikes -= 1
+                }else return
+            }
+        const updatedPost = await Post.findByIdAndUpdate(_id , {
+            likedBy : ourPost.likedBy,
+            likes : ourPost.likes,
+            dislikedBy : ourPost.dislikedBy,
+            dislikes : ourPost.dislikes
+        })
+        return res.status(200).json({ "updatedPost" : updatedPost });
+  } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            'message' : 'Internal Server Error'
+        });
+  }
+});
 
 connectDB()
     .then(() => {

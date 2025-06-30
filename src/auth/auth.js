@@ -19,7 +19,7 @@ authRouter.post('/login' , async (req , res) => {
             const isPasswordValid = await passwordHasher.compare(password, user[0].password);
             if (isPasswordValid) {
                 const token = jwt.sign({_id : user[0]._id} , process.env.JWT_SECRET, {
-                    expiresIn: '1h'
+                    expiresIn: '3h'
                 });
                 res.cookie("token" , token).status(200).send({ message: 'Login Successful', user: user[0] });
             } else {
