@@ -67,6 +67,16 @@ const postSchema = mongoose.Schema({
         type : [mongoose.Schema.Types.ObjectId],
         default : [],
         ref : 'User'
+    },
+    interested : {
+        type : [mongoose.Schema.Types.ObjectId],
+        default : [],
+        ref : 'User'
+    },
+    createdBy : {
+        type : mongoose.Schema.Types.ObjectId,
+        require : true,
+        ref : 'User'
     }
 } , {
     timestamps: true

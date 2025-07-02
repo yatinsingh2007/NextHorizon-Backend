@@ -73,16 +73,18 @@ app.patch('/feed/like', userAuthCheck, async (req, res) => {
         const ourPost = await Post.findById(_id)
         if (isLikeClicked === true){
         if (!ourPost.likedBy.includes(our_user[0]._id)){
-                ourPost.likedBy.push(our_user[0]._id)
-                ourPost.likes += 1
                 if (ourPost.dislikedBy.includes(our_user[0]._id)){
-                    ourPost.dislikedBy = ourPost.dislikedBy.filter((id) => id != our_user[0]._id)
+                    const index = ourPost.dislikedBy.indexOf(our_user[0]._id)
+                    ourPost.dislikedBy.pop(index)
                     ourPost.dislikes -= 1
                 }
+                ourPost.likedBy.push(our_user[0]._id)
+                ourPost.likes += 1
             }else return
         }else{
             if (ourPost.likedBy.includes(our_user[0]._id)){
-                ourPost.likedBy = ourPost.likedBy.filter((id) => id != our_user[0]._id)
+                const index = ourPost.likedBy.indexOf(our_user[0]._id)
+                ourPost.likedBy.pop(index)
                 ourPost.likes -= 1
             }
         }
@@ -91,6 +93,8 @@ app.patch('/feed/like', userAuthCheck, async (req, res) => {
             likes : ourPost.likes,
             dislikedBy : ourPost.dislikedBy,
             dislikes : ourPost.dislikes
+        } , {
+            new : true
         })
         return res.status(200).json({
             'updatedPost' : updatedPost
@@ -105,7 +109,6 @@ app.patch('/feed/dislike', userAuthCheck, async (req, res) => {
   try {
         const ourUser = req.user;
         const { _id, isDisLikeClicked } = req.body;
-
         if (!_id) {
             return res.status(400).send('Post id must be provided');
         }
@@ -116,24 +119,26 @@ app.patch('/feed/dislike', userAuthCheck, async (req, res) => {
         }
         if (isDisLikeClicked === true) {
             if (!ourPost.dislikedBy.includes(ourUser[0]._id)) {
+                if (ourPost.likedBy.includes(ourUser[0]._id)){
+                    const index = ourPost.likedBy.indexOf(ourUser[0]._id)
+                    ourPost.likedBy.pop(index)
+                    ourPost.likes -= 1
+                }
                 ourPost.dislikes += 1;
                 ourPost.dislikedBy.push(ourUser[0]._id);
-                if (ourPost.likedBy.includes(ourUser[0]._id)){
-                    ourPost.likedBy = ourPost.likedBy.filter((id) => id != ourUser[0]._id)
-                    ourPost.likes -= 1
-                }else return
             }
-            }else{
-                if (ourPost.dislikedBy.includes(ourUser[0]._id)){
-                    ourPost.dislikedBy = ourPost.dislikedBy.filter((id) => id != ourUser[0]._id)
-                    ourPost.dislikes -= 1
-                }else return
-            }
+        }else{
+            const index = ourPost.dislikedBy.indexOf(ourUser[0]._id)
+            ourPost.dislikedBy.pop(index)
+            ourPost.dislikes -= 1
+        }
         const updatedPost = await Post.findByIdAndUpdate(_id , {
             likedBy : ourPost.likedBy,
             likes : ourPost.likes,
             dislikedBy : ourPost.dislikedBy,
             dislikes : ourPost.dislikes
+        } , {
+            new : true
         })
         return res.status(200).json({ "updatedPost" : updatedPost });
   } catch (err) {
@@ -143,6 +148,51 @@ app.patch('/feed/dislike', userAuthCheck, async (req, res) => {
         });
   }
 });
+
+app.patch('/post/interested', async (req, res) => {
+    try{
+        const { post_id, user_id } = req.body;
+
+        const ourPost = await Post.findById(post_id);
+        if (!ourPost) {
+        return res.status(404).json({ message: 'Post not found' });
+        }
+
+        if (!ourPost.interested.includes(user_id)) {
+        ourPost.interested.push(user_id);
+
+        const updatedPost = await Post.findByIdAndUpdate(
+            post_id,
+            { interested: ourPost.interested },
+            { new: true }
+        );
+
+        return res.status(200).json({
+            message: 'Interest sent successfully',
+            updatedPost,
+        });
+        } else {
+        return res.status(200).json({ message: 'Your Interest request has already been sent' });
+        }
+    }catch (err) {
+        console.error(err);
+        return res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/create/post' , async (req , res) => {
+    try{
+        const newPostdetails = req.body
+        const newPost = new Post(newPostdetails)
+        const savedPost = await newPost.save()
+        res.status(201).json({
+            'message' : 'Post created Successfully',
+            'post' : savedPost
+        })
+    }catch(err){
+        res.status(500).send('Internal Server Error')
+    }
+})
 
 connectDB()
     .then(() => {
