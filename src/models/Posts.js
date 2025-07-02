@@ -26,19 +26,6 @@ const postSchema = mongoose.Schema({
         minlength: 3,
         maxlength: 100
     },
-    applyUrl : {
-        type : String,
-        required: true,
-        trim: true,
-        validate : {
-            validator : (value) => {
-                if (validator.isURL(value)) {
-                    return true;
-                }
-            },
-            message: 'Invalid URL'
-        }
-    },
     tags : {
         type : [String]
     },

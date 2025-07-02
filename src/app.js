@@ -7,13 +7,16 @@ const authRouter = require('./auth/auth')
 const Post = require('./models/Posts');
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
+const multer = require('multer')
+const upload = multer({dest : 'uploads/'})
+const Oppertunities = require('./models/Oppertunities')
 require('dotenv').config()
 
 const userAuthCheck = require('./middleware/userauthCheck');
 
 app.use(express.json());
 app.use(cookieParser())
-
+app.use('/uploads' , express.static('uploads'))
 app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true
@@ -29,7 +32,7 @@ app.get ('/feed', userAuthCheck , async (req , res) => {
         }
         res.status(200).json(users);
     }catch(err){
-        console.error('Error fetching posts:', err);
+        console.error('Error fetching posts:', err.message);
         res.status(500).json({ message: 'Internal server error' });
     }
 })
@@ -45,6 +48,7 @@ app.patch('/update' , userAuthCheck , async(req , res) => {
             "body" : updatedUser
         })
     }catch(err){
+        console.log(err.message)
         res.status(500).send('Internal Server Error.')
     }
 })
@@ -58,6 +62,7 @@ app.get('' , async (req , res) => {
             'user_data' : client
         })
     }catch(err){
+        console.log(err.message)
         res.status(400).send('Bad Request')
     }
 })
@@ -100,7 +105,7 @@ app.patch('/feed/like', userAuthCheck, async (req, res) => {
             'updatedPost' : updatedPost
         })
  } catch (err) {
-        console.error(err);
+        console.error(err.message);
         return res.status(500).send('Internal Server Error');
   }
 });
@@ -142,14 +147,14 @@ app.patch('/feed/dislike', userAuthCheck, async (req, res) => {
         })
         return res.status(200).json({ "updatedPost" : updatedPost });
   } catch (err) {
-        console.error(err);
+        console.error(err.message);
         return res.status(500).json({
             'message' : 'Internal Server Error'
         });
   }
 });
 
-app.patch('/post/interested', async (req, res) => {
+app.patch('/post/interested', userAuthCheck , async (req, res) => {
     try{
         const { post_id, user_id } = req.body;
 
@@ -175,22 +180,97 @@ app.patch('/post/interested', async (req, res) => {
         return res.status(200).json({ message: 'Your Interest request has already been sent' });
         }
     }catch (err) {
-        console.error(err);
+        console.error(err.message);
         return res.status(500).send('Internal Server Error');
     }
 });
 
-app.post('/create/post' , async (req , res) => {
+app.post('/create/post' , userAuthCheck ,  upload.fields([
+    {name : 'postImage' , maxCount : 1},
+    {name : 'companyLogo' , maxCount : 1}
+]) ,  async (req , res) => {
     try{
-        const newPostdetails = req.body
-        const newPost = new Post(newPostdetails)
+        const ourUser = req.user[0]
+        const _id = ourUser._id
+        let {title , company , description , tags , type} = req.body
+        tags = req.body.tags.split(',').map((tag) => tag.trim())
+        const companyLogo = req.files.companyLogo[0].path
+        const postImage = req.files.postImage[0].path
+        const newPost = new Post({
+            title , company , description , tags , companyLogo , postImage , type , createdBy : _id
+        })
         const savedPost = await newPost.save()
         res.status(201).json({
             'message' : 'Post created Successfully',
             'post' : savedPost
         })
     }catch(err){
+        console.log(err.message)
         res.status(500).send('Internal Server Error')
+    }
+})
+
+app.post('/connect' , userAuthCheck , async (req , res) => {
+    try{
+        const { to_id } = req.body
+        if (!to_id) return res.status(400).send(`Bad request`)
+        const ourUser = req.user[0]
+        const from_id = ourUser._id
+        const newOppertunity = new Oppertunities({
+            from_id , to_id
+        })
+        const AvailableOppertunity = await newOppertunity.save()
+        return res.status(201).json({
+            'message' : 'Connection Request Sent' , 
+            'YourConnection' : AvailableOppertunity
+        })
+    }catch(err){
+        return res.status(500).send(`Internal Server Error`)
+    }
+
+})
+
+app.patch('/connect/accept' , userAuthCheck , async (req , res) => {
+    try{
+        const ourUser = req.user[0]
+        const { _id } = req.body
+        if (!_id) return res.status(400).send(`Bad request`)
+        const ourOppertunity = await Oppertunities.find({
+            from_id : _id , 
+            to_id : ourUser._id
+        })
+        if (ourOppertunity.length === 0) return res.status(404).send(`Something Went Wrong`)
+        const opper_id = ourOppertunity[0]._id
+        const updateRequest = await Oppertunities.findByIdAndUpdate(opper_id , {
+            status : 'accepted'
+        })
+
+        return res.status(200).json({
+            'message' : 'Connection Request Accepted' , 
+            'updatedRequest' : updateRequest
+        })
+
+    }catch(err){
+        console.log(err.message)
+        return res.status(500).send(`Internal Server Error`)
+    }
+})
+
+app.delete('/connect/reject' , userAuthCheck , async (req , res) => {
+    try{
+        const ourUser = req.user[0]
+        const { _id } = req.body
+        if (!_id) return res.status(400).send(`Bad Request`)
+        const ourOppertunity = await Oppertunities.find({
+            from_id : _id , 
+            to_id : ourUser._id
+        })
+        if (ourOppertunity.length === 0) return res.status(404).send(`Something Went Wrong`)
+        await ourOppertunity[0].remove()
+        return res.status(200).send(`Request Rejected`)
+    }catch(err){
+        console.log(err.message)
+        res.status(500).send(`Internal Server Error`)
     }
 })
 
