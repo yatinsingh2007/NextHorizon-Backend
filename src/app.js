@@ -242,7 +242,7 @@ app.patch('/connect/accept' , userAuthCheck , async (req , res) => {
         if (ourOppertunity.length === 0) return res.status(404).send(`Something Went Wrong`)
         const opper_id = ourOppertunity[0]._id
         const updateRequest = await Oppertunities.findByIdAndUpdate(opper_id , {
-            status : 'accepted'
+            connection_status : 'accepted'
         })
 
         return res.status(200).json({
@@ -274,6 +274,46 @@ app.delete('/connect/reject' , userAuthCheck , async (req , res) => {
     }
 })
 
+app.get('/connections' , userAuthCheck , async (req , res) => {
+    try{
+        const user_id = req.user[0]._id
+        const requests = await Oppertunities.find({
+            to_id : user_id , 
+            connection_status : 'pending'
+        })
+        if (requests.length == 0) return res.status(404).send(`No requests for you`)
+        return res.status(200).json({
+            'message' : 'Youre requests' ,
+            'active_request' : requests
+        })
+    }catch(err){
+        console.log(err.message)
+        res.status(500).send(`Internal Server Error`)
+    }
+})
+app.get('/get/myPost' , userAuthCheck , async (req , res) => {
+    try{
+        const ourUser_id = req.user[0]._id
+        const userPosts = await Post.find({createdBy : ourUser_id})
+        if (userPosts.length === 0) return res.status(404).send(`No Posts Available`)
+        return res.status(200).json({
+            'message' : 'Youre Posts' ,
+            'posts' : userPosts
+        })
+    }catch(err){
+        console.log(err.message)
+        return res.status(500).send(`Internal Server Error`)
+    }
+})
+
+app.patch('/update/profile' , userAuthCheck , async (req , res) => {
+    try{
+        
+    }catch(err){
+        console.log(err.messgae)
+        return res.stauts(500).send(`Internal Server Error`)
+    }
+})
 connectDB()
     .then(() => {
         app.listen(7777 , () => {

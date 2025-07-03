@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const oppertunitySchema = mongoose.Schema({
     from_id : {
         type : mongoose.Schema.Types.ObjectId ,
-        required : true
+        required : true,
+        ref : 'User'
     } , 
     to_id : {
         type : mongoose.Schema.Types.ObjectId ,
-        required : true
+        required : true , 
+        ref : 'User'
     } , 
     connection_status : {
         type : String ,

@@ -18,9 +18,7 @@ const userAuthCheck = async (req , res , next) => {
         }
 
     }else{
-        res.status(401).json({
-            'message' : 'User Anauthorized'
-        })
+        res.status(401).send(`User Unauthorised`)
     }
 }
 

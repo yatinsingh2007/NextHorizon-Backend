@@ -54,6 +54,10 @@ const userSchema = mongoose.Schema({
         trim: true,
         maxlength: 500,
         default: 'Hey I am new to NextHorion, let\'s connect and grow together!'
+    },
+    followers : {
+        type : Number, 
+        default : 0
     }
 })
 
