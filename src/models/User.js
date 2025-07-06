@@ -58,6 +58,10 @@ const userSchema = mongoose.Schema({
     followers : {
         type : Number, 
         default : 0
+    } , 
+    followerlist : {
+        type : [mongoose.Schema.Types.ObjectId] , 
+        default : []
     }
 })
 
