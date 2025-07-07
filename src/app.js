@@ -25,15 +25,24 @@ app.use(cors({
 app.use('/auth', authRouter);
 
 app.get ('/feed', userAuthCheck , async (req , res) => {
+    const ourUser = req.user[0]
+    console.log(ourUser)
     try{
-        const users = await Post.find({})
-        if (users.length === 0) {
-            return res.status(404).json({ message: 'No posts found' });
+        const posts = await Post.find({})
+        if (posts.length === 0) {
+            return res
+            .status(404)
+            .json({ message: 'No posts Available' });
         }
-        res.status(200).json(users);
+        const feedPosts = posts.filter((post) => post.createdBy.toString() !== ourUser._id.toString())
+        res.
+        status(200)
+        .json(feedPosts);
     }catch(err){
-        console.error('Error fetching posts:', err.message);
-        res.status(500).json({ message: 'Internal server error' });
+        console.log('Error fetching posts:', err.message);
+        res
+        .status(500)
+        .send(`Internal Server Error`)
     }
 })
 

@@ -62,7 +62,7 @@ const postSchema = mongoose.Schema({
     },
     createdBy : {
         type : mongoose.Schema.Types.ObjectId,
-        require : true,
+        required : true,
         ref : 'User'
     }
 } , {
