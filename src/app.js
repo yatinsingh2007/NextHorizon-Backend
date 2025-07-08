@@ -308,8 +308,10 @@ app.patch('/connect/accept' , userAuthCheck , async (req , res) => {
             connection_status : 'accepted'
         })
         ourUser.followers ++
+        ourUser.followerlist = [...ourUser.followerlist , _id.toString()]
         await User.findByIdAndUpdate(ourUser._id , {
-            followers : ourUser.followers
+            followers : ourUser.followers,
+            followerlist : ourUser.followerlist
         } , {
             new : true
         })
