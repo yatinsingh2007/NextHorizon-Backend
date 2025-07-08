@@ -26,7 +26,6 @@ app.use('/auth', authRouter);
 
 app.get ('/feed', userAuthCheck , async (req , res) => {
     const ourUser = req.user[0]
-    console.log(ourUser)
     try{
         const posts = await Post.find({})
         if (posts.length === 0) {
@@ -308,7 +307,12 @@ app.patch('/connect/accept' , userAuthCheck , async (req , res) => {
         const updateRequest = await Oppertunities.findByIdAndUpdate(opper_id , {
             connection_status : 'accepted'
         })
-
+        ourUser.followers ++
+        await User.findByIdAndUpdate(ourUser._id , {
+            followers : ourUser.followers
+        } , {
+            new : true
+        })
         return res
         .status(200)
         .json({
@@ -329,12 +333,12 @@ app.delete('/connect/reject' , userAuthCheck , async (req , res) => {
         const ourUser = req.user[0]
         const { _id } = req.body
         if (!_id) return res.status(400).send(`Bad Request`)
-        const ourOppertunity = await Oppertunities.find({
+        const ourOppertunity = await Oppertunities.findOne({
             from_id : _id , 
             to_id : ourUser._id
         })
-        if (ourOppertunity.length === 0) return res.status(404).send(`Something Went Wrong`)
-        await ourOppertunity[0].remove()
+        if (!ourOppertunity) return res.status(404).send(`Something Went Wrong`)
+        await ourOppertunity.deleteOne()
         return res
         .status(200)
         .send(`Request Rejected`)
@@ -349,15 +353,15 @@ app.get('/connections' , userAuthCheck , async (req , res) => {
         const user_id = req.user[0]._id
         const requests = await Oppertunities.find({
             to_id : user_id , 
-            connection_status : 'pending'
+            connection_status : 'Pending'
         })
         if (requests.length == 0) return res.status(404).send(`No requests for you`)
-        return res
-        .status(200)
-        .json({
-                'message' : 'Youre requests' ,
-                'active_request' : requests
-            })
+        const requestIds = requests.map((request) => request.from_id.toString())
+        const allUsers = await User.find({})
+        const requiredUsers = allUsers.filter((user) => requestIds.includes(user._id.toString()))
+        return res.status(200).json({
+            'requestUsers' : requiredUsers
+        })
     }catch(err){
         console.log(err.message)
         res.status(500).send(`Internal Server Error`)
@@ -411,7 +415,7 @@ app.patch('/update/post',  upload.fields([{name : 'postImage' , maxCount : 1},
     }
 })
 
-app.delete('/delete/post' , async (req , res) => {
+app.delete('/delete/post' , userAuthCheck ,  async (req , res) => {
     try{
         const post_id = req.query.post_id
         const userPost = await Post.findById(post_id)
