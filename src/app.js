@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(cookieParser())
 app.use('/uploads' , express.static('uploads'))
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.front_end_url,
     credentials: true
 }))
 
@@ -33,7 +33,10 @@ app.get ('/feed', userAuthCheck , async (req , res) => {
             .status(404)
             .json({ message: 'No posts Available' });
         }
-        const feedPosts = posts.filter((post) => post.createdBy.toString() !== ourUser._id.toString())
+        const feedPosts = posts.filter((post) => post.createdBy.toString() !== ourUser._id.toString()
+         && !post.likedBy.includes(ourUser._id.toString())
+         && !post.dislikedBy.includes(ourUser._id.toString()) 
+         && !post.interested.includes(ourUser._id.toString()))
         res.
         status(200)
         .json(feedPosts);
@@ -183,7 +186,7 @@ app.patch('/feed/dislike', userAuthCheck, async (req, res) => {
 app.patch('/post/interested', userAuthCheck , async (req, res) => {
     try{
         const { post_id, user_id } = req.body;
-
+        console.log(post_id , user_id)
         const ourPost = await Post.findById(post_id);
         if (!ourPost) {
         return res.status(404).json({ message: 'Post not found' });
@@ -274,6 +277,15 @@ app.post('/connect' , userAuthCheck , async (req , res) => {
         const { to_id } = req.body
         if (!to_id) return res.status(400).send(`Bad request`)
         const ourUser = req.user[0]
+        const existingRequest = await Oppertunities.findOne({
+            from_id: ourUser._id,
+            to_id: to_id
+        });
+        if (existingRequest) {
+            return res
+            .status(400)
+            .send('Connection request already sent');
+        }
         const from_id = ourUser._id
         const newOppertunity = new Oppertunities({
             from_id , to_id
@@ -463,8 +475,8 @@ app.get('/mypossibleConnections' , userAuthCheck ,  async (req , res) => {
 
 connectDB()
     .then(() => {
-        app.listen(7777 , () => {
-            console.log('Server is running on port 7777');
+        app.listen(process.env.local_port , () => {
+            console.log('Server is running successfully');
         })
     }).catch((err) => {
         console.log('connect Failed:', err.message);
