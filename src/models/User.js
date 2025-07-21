@@ -47,7 +47,7 @@ const userSchema = mongoose.Schema({
     },
     profilePic:{
         type: String,
-        default: 'https://res.cloudinary.com/dz1qj3x8h/image/upload/v1735681234/nextHorion/defaultProfilePic.png'
+        default: 'https://www.citypng.com/public/uploads/preview/transparent-hd-white-male-user-profile-icon-701751695035030pj3izxn7kh.png'
     },
     bio:{
         type: String,
@@ -62,7 +62,13 @@ const userSchema = mongoose.Schema({
     followerlist : {
         type : [mongoose.Schema.Types.ObjectId] , 
         default : []
+    },
+    gender : {
+        type : String,
+        enum : ['male' , 'female' , 'other'],
     }
+} , {
+    timestamps: true,
 })
 
 
