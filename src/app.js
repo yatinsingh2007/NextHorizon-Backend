@@ -24,7 +24,7 @@ app.use(cors({
 
 app.use('/auth', authRouter);
 
-app.get ('/feed', userAuthCheck , async (req , res) => {
+app.get('/feed', userAuthCheck , async (req , res) => {
     const ourUser = req.user[0]
     try{
         const posts = await Post.find({})
