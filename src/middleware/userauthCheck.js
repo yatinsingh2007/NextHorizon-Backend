@@ -4,6 +4,7 @@ const User = require('../models/User')
 const jwt = require('jsonwebtoken')
 const userAuthCheck = async (req , res , next) => {
     if (req.cookies){
+        console.log(req.cookies, "req.cookies")
         const cookie_token = req.cookies['token']
         console.log(cookie_token)
         if (!cookie_token) return res.status(401).send(`User Unauthorised`)
