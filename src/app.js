@@ -65,24 +65,7 @@ app.patch('/update' , userAuthCheck , async(req , res) => {
         .send('Internal Server Error.')
     }
 })
-app.get('' , async (req , res) => {
-    const token = req.query.token
-    const ourUser = jwt.verify(token , process.env.JWT_SECRET)
-    try{
-        const client = await User.find({_id : ourUser._id})
-        return res
-        .status(200)
-        .json({
-            'message' : 'user exists',
-            'user_data' : client
-        })
-    }catch(err){
-        console.log(err.message)
-        res
-        .status(400)
-        .send('Bad Request')
-    }
-})
+
 
 app.patch('/feed/like', userAuthCheck, async (req, res) => {
   try {
@@ -470,6 +453,25 @@ app.get('/mypossibleConnections' , userAuthCheck ,  async (req , res) => {
         return res
         .status(500)
         .send(`Internal Server Error`)
+    }
+})
+
+app.get('' , async (req , res) => {
+    const token = req.query.token;
+    const ourUser = jwt.verify(token , process.env.JWT_SECRET)
+    try{
+        const client = await User.find({_id : ourUser._id})
+        return res
+        .status(200)
+        .json({
+            'message' : 'user exists',
+            'user_data' : client
+        })
+    }catch(err){
+        console.log(err.message)
+        res
+        .status(400)
+        .send('Bad Request')
     }
 })
 
