@@ -21,7 +21,14 @@ authRouter.post('/login' , async (req , res) => {
                 const token = jwt.sign({_id : user[0]._id} , process.env.JWT_SECRET, {
                     expiresIn: '3h'
                 });
-                res.cookie("token" , token).status(200).send({ message: 'Login Successful', user: user[0] });
+                // res.cookie("token" , token).status(200).send({ message: 'Login Successful', user: user[0] });
+                res.cookie("token", token, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "None",
+                  })
+                  .status(200)
+                  .send({ message: 'Login Successful', user: user[0] });
             } else {
                 res.status(401).send('Invalid Credentials');
             }
