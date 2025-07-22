@@ -458,6 +458,9 @@ app.get('/mypossibleConnections' , userAuthCheck ,  async (req , res) => {
 
 app.get('' , async (req , res) => {
     const token = req.query.token;
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     const ourUser = jwt.verify(token , process.env.JWT_SECRET)
     try{
         const client = await User.find({_id : ourUser._id})
