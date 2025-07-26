@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(cookieParser())
 app.use('/uploads' , express.static('uploads'))
 app.use(cors({
-    origin: process.env.front_end_url,
+    origin: [process.env.front_end_url, 'http://localhost:5173'],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
 }))
