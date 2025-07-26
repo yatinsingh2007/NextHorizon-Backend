@@ -23,7 +23,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
 }))
-
+app.options('*' , cors())
 app.use('/auth', authRouter);
 
 app.get('/feed', userAuthCheck , async (req , res) => {
