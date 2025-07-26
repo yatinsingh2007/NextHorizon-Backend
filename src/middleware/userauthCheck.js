@@ -1,5 +1,4 @@
 require('dotenv').config()
-const cookieParser = require('cookie-parser')
 const User = require('../models/User')
 const jwt = require('jsonwebtoken')
 const userAuthCheck = async (req , res , next) => {

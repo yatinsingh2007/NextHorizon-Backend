@@ -27,18 +27,6 @@ const userSchema = mongoose.Schema({
             message: 'Password must be Strong'
         }
     },
-    bachelorsDegree : {
-        type : String,
-        trim: true,
-        minlength: 3,
-        maxlength: 50
-    },
-    mastersDegree : {
-        type : String,
-        trim: true,
-        minlength: 3,
-        maxlength: 50
-    },
     mobileNo:{
         type : String,
         trim: true,
@@ -66,7 +54,15 @@ const userSchema = mongoose.Schema({
     gender : {
         type : String,
         enum : ['male' , 'female' , 'other'],
-    }
+    },
+    education : {
+        type : [Object],
+        default: []
+    },
+    work : {
+        type : [Object],
+        default: []
+    },
 } , {
     timestamps: true,
 })
