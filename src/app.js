@@ -23,7 +23,11 @@ app.use(cors({
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
 }))
-app.options('*' , cors())
+app.options('*' , cors({
+    origin: [process.env.front_end_url, 'http://localhost:5173'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    credentials: true,
+}))
 app.use('/auth', authRouter);
 
 app.get('/feed', userAuthCheck , async (req , res) => {
@@ -458,7 +462,7 @@ app.get('/mypossibleConnections' , userAuthCheck ,  async (req , res) => {
     }
 })
 
-app.get('' , async (req , res) => {
+app.get('/' , async (req , res) => {
     const token = req.query.token;
     if (!token) {
         return res.status(401).json({ message: 'Unauthorized' });
