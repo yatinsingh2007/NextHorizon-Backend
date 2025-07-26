@@ -23,11 +23,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
 }))
-app.options('*' , cors({
-    origin: [process.env.front_end_url, 'http://localhost:5173'],
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    credentials: true,
-}))
 app.use('/auth', authRouter);
 
 app.get('/feed', userAuthCheck , async (req , res) => {
