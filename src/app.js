@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
 app.use('/uploads' , express.static('uploads'))
 app.use(cors({
-    origin: process.env.front_end_url,
+    origin: 'https://next-horizon-nine.vercel.app',
     credentials: true,
 }))
 app.use('/auth', authRouter);
