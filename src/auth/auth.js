@@ -64,7 +64,7 @@ authRouter.post('/register', async (req, res) => {
 });
 
 authRouter.get('/logout' , (req , res) => {
-    res.cookie("token" , null , {
+    return res.cookie("token" , null , {
         expires : new Date(Date.now()),
         httpOnly : true,
         secure : true,
